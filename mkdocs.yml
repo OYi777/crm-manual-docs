@@ -1,0 +1,11 @@
+# 站点标题
+site_name: CRM系统操作手册
+# 主题（material是最美侧边栏文档主题）
+theme:
+  name: material
+# 侧边导航目录配置，格式：- 导航名称: 对应docs下的md文件
+nav:
+  - 首页: CRM操作手册.md
+  # 多文档可追加：
+  # - 客户管理: customer.md
+  # - 线索管理: lead.md
