@@ -1,0 +1,139 @@
+/* ============ 搜索框美化 ============ */
+/* 仅桌面端生效（≥960px），移动端保留原生全屏搜索 */
+@media screen and (min-width: 60em) {
+  /* 点击后不放大：展开与收起保持同一宽度 */
+  .md-search__inner {
+    width: 11.7rem;
+  }
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__inner {
+    width: 11.7rem;
+  }
+
+  /* 展开时不再置灰背景（遮罩保留但透明，点击外部仍可关闭搜索） */
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__overlay {
+    background-color: transparent;
+  }
+
+  /* 搜索框外观：胶囊圆角 + 细描边 + 柔和过渡 */
+  .md-search__form {
+    height: 2rem;
+    border: 0.0625rem solid rgba(255, 255, 255, 0.25);
+    border-radius: 1rem;
+    transition: background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+  .md-search__form:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+  /* 展开状态：白底、保持胶囊形状 */
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__form {
+    border-radius: 1rem;
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.1rem 0.4rem rgba(0, 0, 0, 0.12);
+  }
+  /* 小尺寸下隐藏输入提示层，避免文字溢出胶囊 */
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__suggest {
+    display: none;
+  }
+
+  /* 结果下拉面板：与搜索框同宽，悬浮其下，圆角阴影 */
+  .md-search__output {
+    margin-top: 0.5rem;
+    box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.16);
+  }
+  [dir="ltr"] .md-search__output,
+  [dir="rtl"] .md-search__output {
+    border-radius: 0.5rem;
+  }
+  /* 结果内容随面板宽度换行，避免溢出裁切 */
+  .md-search__scrollwrap {
+    width: 100%;
+  }
+}
+
+/* ========== 右侧目录 TOC 树形美化 ========== */
+/* 隐藏右侧目录顶部“目录”标题文字 */
+/*.md-sidebar--secondary .md-nav__title {
+  display: none !important;
+}
+/* 右侧侧边栏标题：目录，居中，小四号加粗 */
+.md-sidebar--secondary .md-nav__title {
+  display: block !important;
+  font-size: 0.75rem !important;  /*小四号*/
+  font-weight: bold;
+  padding: 0.4rem 0.4rem 0.2rem;
+  text-align: center !important;   /*文字居中*/
+}
+
+/* 目录条目：小四号(12px)，全部层级不加粗（仅作用于右侧目录） */
+.md-sidebar--secondary .md-nav__link {
+  font-weight: normal !important;
+  font-size: 0.65rem !important;
+  padding: 0.3rem 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* 目录外层基础边距 */
+.md-sidebar--secondary .md-nav__list {
+  padding-left: 0.3rem;
+}
+
+/* 子目录缩进+层级竖线 */
+.md-sidebar--secondary .md-nav__list .md-nav__list {
+  padding-left: 1rem;
+  border-left: 1px solid #e2e2e2;
+  margin-left: 0.2rem;
+}
+
+/* 悬浮高亮 */
+.md-sidebar--secondary .md-nav__link:hover {
+  background-color: #f0f6ff;
+  color: #2463eb;
+}
+
+/* 当前激活项底色 */
+.md-sidebar--secondary .md-nav__link--active {
+  background-color: #dbeafe;
+}
+
+/* 折叠行为：下级目录默认收起，点击父级条目展开/收起 */
+.md-sidebar--secondary .md-nav__item > .md-nav {
+  display: none;
+}
+.md-sidebar--secondary .md-nav__item--open > .md-nav {
+  display: block;
+}
+
+/* 有下级章节前置箭头 ▶ */
+.md-sidebar--secondary .md-nav__item--nested > .md-nav__link::before {
+  content: "▶";
+  font-size: 0.7rem;
+  margin-right: 6px;
+  color: #555;
+  display: inline-block;
+  width: 12px;
+  transition: transform 0.2s ease;
+}
+
+/* 展开后箭头旋转向下 ▼ */
+.md-sidebar--secondary .md-nav__item--open > .md-nav__link::before {
+  transform: rotate(90deg);
+}
+
+/* 滚动条美化 */
+.md-sidebar--secondary::-webkit-scrollbar {
+  width: 5px;
+}
+.md-sidebar--secondary::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+/* ========== 正文内容美化 ========== */
+/*正文段落、列表：行高 1.4 比较适合中文文档；越大越宽松*/
+.md-typeset p,
+.md-typeset li {
+    line-height: 1.4 !important;   /*行间距，1.4/1.6/1.8可调*/
+    letter-spacing: 0.02em !important; /*字间距，0.02em轻微拉开，0关闭*/
+}
