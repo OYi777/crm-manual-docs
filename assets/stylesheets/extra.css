@@ -51,13 +51,9 @@
   }
 }
 
-/* ========== 右侧目录 TOC 树形美化 ========== */
-/* 隐藏右侧目录顶部“目录”标题文字 */
-/*.md-sidebar--secondary .md-nav__title {
-  display: none !important;
-}
-/* 右侧侧边栏标题：目录，居中，小四号加粗 */
-.md-sidebar--secondary .md-nav__title {
+/* ========== 集成目录 TOC 树形美化（toc.integrate：目录在左侧栏文件项下） ========== */
+/* “目录”标题：居中，小四号加粗 */
+.md-sidebar .md-nav--secondary > .md-nav__title {
   display: block !important;
   font-size: 0.75rem !important;  /*小四号*/
   font-weight: bold;
@@ -65,48 +61,48 @@
   text-align: center !important;   /*文字居中*/
 }
 
-/* 目录条目：小四号(12px)，全部层级不加粗（仅作用于右侧目录） */
-.md-sidebar--secondary .md-nav__link {
+/* 目录条目：小四号(12px)，全部层级不加粗 */
+.md-sidebar .md-nav--secondary .md-nav__link {
   font-weight: normal !important;
   font-size: 0.65rem !important;
-  padding: 0.3rem 0.4rem;
+  padding: 0.3rem 0.4rem !important;
   border-radius: 4px;
   cursor: pointer;
 }
 
 /* 目录外层基础边距 */
-.md-sidebar--secondary .md-nav__list {
+.md-sidebar .md-nav--secondary .md-nav__list {
   padding-left: 0.3rem;
 }
 
 /* 子目录缩进+层级竖线 */
-.md-sidebar--secondary .md-nav__list .md-nav__list {
+.md-sidebar .md-nav--secondary .md-nav__list .md-nav__list {
   padding-left: 1rem;
   border-left: 1px solid #e2e2e2;
   margin-left: 0.2rem;
 }
 
 /* 悬浮高亮 */
-.md-sidebar--secondary .md-nav__link:hover {
+.md-sidebar .md-nav--secondary .md-nav__link:hover {
   background-color: #f0f6ff;
   color: #2463eb;
 }
 
 /* 当前激活项底色 */
-.md-sidebar--secondary .md-nav__link--active {
+.md-sidebar .md-nav--secondary .md-nav__link--active {
   background-color: #dbeafe;
 }
 
 /* 折叠行为：下级目录默认收起，点击父级条目展开/收起 */
-.md-sidebar--secondary .md-nav__item > .md-nav {
+.md-sidebar .md-nav--secondary .md-nav__item > .md-nav {
   display: none;
 }
-.md-sidebar--secondary .md-nav__item--open > .md-nav {
+.md-sidebar .md-nav--secondary .md-nav__item--open > .md-nav {
   display: block;
 }
 
 /* 有下级章节前置箭头 ▶ */
-.md-sidebar--secondary .md-nav__item--nested > .md-nav__link::before {
+.md-sidebar .md-nav--secondary .md-nav__item--nested > .md-nav__link::before {
   content: "▶";
   font-size: 0.7rem;
   margin-right: 6px;
@@ -117,17 +113,58 @@
 }
 
 /* 展开后箭头旋转向下 ▼ */
-.md-sidebar--secondary .md-nav__item--open > .md-nav__link::before {
+.md-sidebar .md-nav--secondary .md-nav__item--open > .md-nav__link::before {
   transform: rotate(90deg);
 }
 
+/* 桌面端：目录整体默认收起，点击左侧文件【CRM操作手册】展开/收起 */
+@media screen and (min-width: 60em) {
+  /* 显示可切换目录的文件标签（Material 在宽屏下默认隐藏它），并隐藏重复的页面链接 */
+  .md-sidebar .md-nav__link[for="__toc"] {
+    display: flex !important;
+  }
+  .md-sidebar .md-nav__link[for="__toc"] + .md-nav__link {
+    display: none !important;
+  }
+  /* 目录默认收起，勾选（点击文件项）后展开 */
+  .md-sidebar #__toc ~ .md-nav {
+    display: none;
+  }
+  .md-sidebar #__toc:checked ~ .md-nav {
+    display: block;
+  }
+}
+
 /* 滚动条美化 */
-.md-sidebar--secondary::-webkit-scrollbar {
+.md-sidebar::-webkit-scrollbar {
   width: 5px;
 }
-.md-sidebar--secondary::-webkit-scrollbar-thumb {
+.md-sidebar::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
+}
+
+/* ========== 批注路径链接（点击跳转对应正文位置） ========== */
+a.doc-path-link {
+  color: inherit !important;          /* 保持正文文字颜色 */
+  background-color: #fff3b0;          /* 浅黄高亮，类似批注底纹 */
+  border-bottom: 1px dashed #d4a017;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s, border-bottom-color 0.2s;
+}
+a.doc-path-link:hover {
+  background-color: #ffe27a;
+  border-bottom-color: #b8860b;
+}
+
+/* 跳转后目标标题高亮闪烁 */
+@keyframes doc-path-flash {
+  0% { background-color: #ffe27a; }
+  100% { background-color: transparent; }
+}
+.doc-path-flash {
+  animation: doc-path-flash 2.2s ease;
 }
 
 /* ========== 正文内容美化 ========== */

@@ -1,12 +1,27 @@
-/* 右侧目录（TOC）点击折叠/展开
+/* 集成目录（TOC）点击折叠/展开
  * - 有下级标题的条目默认收起，点击标题文字折叠/展开
  * - 页面滚动时自动展开当前激活条目所在的层级
+ * - 目录整体默认收起（toc.integrate），点击左侧文件【CRM操作手册】展开
  */
 (function () {
   "use strict";
 
+  /* 展开当前激活条目所在的全部父层级 */
+  function expandActiveAncestors(toc) {
+    var active = toc.querySelector(".md-nav__link--active");
+    var li = active ? active.closest("li") : null;
+    while (li) {
+      li.classList.add("md-nav__item--open");
+      li = li.parentElement ? li.parentElement.closest("li") : null;
+    }
+  }
+
   function initTocCollapse() {
-    var toc = document.querySelector(".md-sidebar--secondary");
+    /* 目录整体默认收起，点击文件【CRM操作手册】再展开 */
+    var tocToggle = document.getElementById("__toc");
+    if (tocToggle) tocToggle.checked = false;
+
+    var toc = document.querySelector(".md-sidebar .md-nav--secondary");
     if (!toc) return;
 
     /* 给含下级标题的条目加上折叠类与点击事件 */
@@ -35,6 +50,9 @@
       }
     });
 
+    /* 初始展开当前激活条目所在层级（配合 toc.follow 滚动联动） */
+    expandActiveAncestors(toc);
+
     /* 监听高亮项变化（toc.follow 滚动联动），自动展开其所在层级 */
     if (toc.dataset.tocObserved) return;
     toc.dataset.tocObserved = "1";
@@ -46,13 +64,7 @@
           mutation.target.classList.contains("md-nav__link--active");
       });
       if (!activeChanged) return;
-
-      var active = toc.querySelector(".md-nav__link--active");
-      var li = active ? active.closest("li") : null;
-      while (li) {
-        li.classList.add("md-nav__item--open");
-        li = li.parentElement ? li.parentElement.closest("li") : null;
-      }
+      expandActiveAncestors(toc);
     });
     observer.observe(toc, { attributes: true, attributeFilter: ["class"], subtree: true });
   }
