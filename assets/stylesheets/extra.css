@@ -52,6 +52,11 @@
 }
 
 /* ========== 集成目录 TOC 树形美化（toc.integrate：目录在左侧栏文件项下） ========== */
+/* 【重点】整个左侧导航树往下偏移，避开顶部“CRM操作手册”标签，防止文字被遮挡 */
+.md-sidebar--primary .md-nav {
+  margin-top: 24px; /* 数值调大就整体往下，48、56、64按需调 */
+}
+
 /* “目录”标题：居中，小四号加粗 */
 .md-sidebar .md-nav--secondary > .md-nav__title {
   display: block !important;
@@ -142,6 +147,11 @@
 .md-sidebar::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
+}
+
+/* 父目录箭头点击区域加宽 */
+.md-nav--secondary .md-nav__item-nested > .md-nav__link::before {
+  padding-right:4px;
 }
 
 /* ========== 批注路径链接（点击跳转对应正文位置） ========== */

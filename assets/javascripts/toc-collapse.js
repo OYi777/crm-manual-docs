@@ -43,9 +43,18 @@
       );
       if (link) {
         link.addEventListener("click", function (event) {
-          event.preventDefault();
-          event.stopPropagation();
-          item.classList.toggle("md-nav__item--open");
+          // 箭头伪元素大约占左侧24px区域
+          const arrowAreaWidth = 24;
+          // 相对当前link元素的X坐标
+          const clickX = event.offsetX;
+
+          // 点击在左侧箭头区域：阻止跳转，只折叠展开
+          if (clickX <= arrowAreaWidth) {
+            event.preventDefault();
+            event.stopPropagation();
+            item.classList.toggle("md-nav__item--open");
+          }
+          // 点击文字区域：不执行preventDefault，允许原生跳转锚点
         });
       }
     });
