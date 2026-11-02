@@ -1,29 +1,19 @@
-/* 集成目录（TOC）点击折叠/展开
- * - 有下级标题的条目默认收起，点击标题文字折叠/展开
- * - 页面滚动时自动展开当前激活条目所在的层级
- * - 目录整体默认收起（toc.integrate），点击左侧文件【CRM操作手册】展开
+/* 集成目录（TOC）交互
+ * - 目录面板锁定展开：点击「目录」标题不再切换显隐
+ * - 手动折叠：点击条目左侧箭头区域折叠/展开子项，点击文字正常跳转锚点
+ * - 已关闭 toc.follow，不再监听滚动/激活项变化，目录不跟随正文定位
+ * - 兼容 Material instant navigation（document$.subscribe 重新初始化）
  */
 (function () {
   "use strict";
 
-  /* 展开当前激活条目所在的全部父层级 */
-  function expandActiveAncestors(toc) {
-    var active = toc.querySelector(".md-nav__link--active");
-    var li = active ? active.closest("li") : null;
-    while (li) {
-      li.classList.add("md-nav__item--open");
-      li = li.parentElement ? li.parentElement.closest("li") : null;
-    }
-  }
-
   function initTocCollapse() {
-    /* 目录默认展开（不再强制收起） */
+    /* ---------- 1) 目录锁定展开 ---------- */
     var tocToggle = document.getElementById("__toc");
     if (tocToggle) tocToggle.checked = true;
 
-    /* 拦截所有 label[for="__toc"] 的点击（"目录"标题 + 顶部文件标签）：
-       目录永久展开，点击不再切换显隐。
-       用 querySelectorAll：集成的 TOC 往往有多个同类 label。 */
+    /* 拦截所有 label[for="__toc"] 的点击（「目录」标题 + 顶部文件标签）：
+       集成的 TOC 往往有多个同类 label，用 querySelectorAll 全部处理。 */
     document.querySelectorAll('.md-sidebar label[for="__toc"]').forEach(function (label) {
       if (label.dataset.tocLocked) return;
       label.dataset.tocLocked = "1";
@@ -37,9 +27,9 @@
     var toc = document.querySelector(".md-sidebar .md-nav--secondary");
     if (!toc) return;
 
-    /* 给含下级标题的条目加上折叠类与点击事件 */
+    /* ---------- 2) 手动折叠/展开子项 ---------- */
     toc.querySelectorAll(".md-nav__item").forEach(function (item) {
-      if (item.dataset.tocCollapse) return; /* 已初始化，跳过 */
+      if (item.dataset.tocCollapse) return;        /* 已初始化，跳过 */
 
       var subNav = Array.prototype.find.call(
         item.children,
@@ -54,41 +44,19 @@
         item.children,
         function (el) { return el.classList.contains("md-nav__link"); }
       );
-      if (link) {
-        link.addEventListener("click", function (event) {
-          // 箭头伪元素大约占左侧24px区域
-          const arrowAreaWidth = 24;
-          // 相对当前link元素的X坐标
-          const clickX = event.offsetX;
+      if (!link) return;
 
-          // 点击在左侧箭头区域：阻止跳转，只折叠展开
-          if (clickX <= arrowAreaWidth) {
-            event.preventDefault();
-            event.stopPropagation();
-            item.classList.toggle("md-nav__item--open");
-          }
-          // 点击文字区域：不执行preventDefault，允许原生跳转锚点
-        });
-      }
-    });
-
-    /* 初始展开当前激活条目所在层级（配合 toc.follow 滚动联动） */
-    expandActiveAncestors(toc);
-
-    /* 监听高亮项变化（toc.follow 滚动联动），自动展开其所在层级 */
-    if (toc.dataset.tocObserved) return;
-    toc.dataset.tocObserved = "1";
-
-    var observer = new MutationObserver(function (mutations) {
-      var activeChanged = mutations.some(function (mutation) {
-        return mutation.type === "attributes" &&
-          mutation.attributeName === "class" &&
-          mutation.target.classList.contains("md-nav__link--active");
+      link.addEventListener("click", function (event) {
+        /* 相对 link 自身的横坐标：左侧 24px 为箭头折叠区 */
+        var clickX = event.clientX - link.getBoundingClientRect().left;
+        if (clickX <= 24) {
+          event.preventDefault();
+          event.stopPropagation();
+          item.classList.toggle("md-nav__item--open");
+        }
+        /* 点击文字区域：不拦截，走原生锚点跳转 */
       });
-      if (!activeChanged) return;
-      expandActiveAncestors(toc);
     });
-    observer.observe(toc, { attributes: true, attributeFilter: ["class"], subtree: true });
   }
 
   if (document.readyState === "loading") {
