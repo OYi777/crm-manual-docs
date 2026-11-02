@@ -17,9 +17,22 @@
   }
 
   function initTocCollapse() {
-    /* 目录整体默认收起，点击文件【CRM操作手册】再展开 */
+    /* 目录默认展开（不再强制收起） */
     var tocToggle = document.getElementById("__toc");
-    if (tocToggle) tocToggle.checked = false;
+    if (tocToggle) tocToggle.checked = true;
+
+    /* 拦截所有 label[for="__toc"] 的点击（"目录"标题 + 顶部文件标签）：
+       目录永久展开，点击不再切换显隐。
+       用 querySelectorAll：集成的 TOC 往往有多个同类 label。 */
+    document.querySelectorAll('.md-sidebar label[for="__toc"]').forEach(function (label) {
+      if (label.dataset.tocLocked) return;
+      label.dataset.tocLocked = "1";
+      label.addEventListener("click", function (e) {
+        e.preventDefault();                        // 阻止 label 切 checkbox
+        e.stopPropagation();
+        if (tocToggle) tocToggle.checked = true;   // 强制保持展开
+      });
+    });
 
     var toc = document.querySelector(".md-sidebar .md-nav--secondary");
     if (!toc) return;

@@ -131,12 +131,17 @@
   .md-sidebar .md-nav__link[for="__toc"] + .md-nav__link {
     display: none !important;
   }
-  /* 目录默认收起，勾选（点击文件项）后展开 */
-  .md-sidebar #__toc ~ .md-nav {
-    display: none;
+  /* 目录永久展开：无论 __toc checkbox 是否勾选，secondary 目录始终可见 */
+  .md-sidebar #__toc ~ .md-nav,
+  .md-sidebar #__toc:checked ~ .md-nav,
+  .md-sidebar .md-nav--secondary {
+    display: block !important;
   }
-  .md-sidebar #__toc:checked ~ .md-nav {
-    display: block;
+  /* “目录”标题就是 label[for="__toc"]，禁用指针事件 → 点击不再切换显隐 */
+  .md-sidebar .md-nav--secondary > .md-nav__title[for="__toc"],
+  .md-sidebar .md-nav--secondary > label[for="__toc"] {
+    pointer-events: none;
+    cursor: default;
   }
 }
 
@@ -183,4 +188,164 @@ a.doc-path-link:hover {
 .md-typeset li {
     line-height: 1.4 !important;   /*行间距，1.4/1.6/1.8可调*/
     letter-spacing: 0.02em !important; /*字间距，0.02em轻微拉开，0关闭*/
+}
+
+/* ========== 侧边导航：单行省略 + 悬浮完整标题（tooltip） ========== */
+/* 左侧文件导航 + 集成目录 的所有 .md-nav__link */
+.md-sidebar .md-nav__link {
+  /* flex 子项默认为 auto 会阻挡 ellipsis，显式允许收缩 */
+  min-width: 0;
+}
+
+/* 文字包裹层：强制单行 + 省略号 */
+.md-sidebar .md-nav__link > span {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 有下级的嵌套条目：给前置箭头（::before，宽约 18px）留出空间 */
+.md-sidebar .md-nav__item--nested > .md-nav__link > span {
+  max-width: calc(100% - 1.2rem);
+}
+
+/* 非嵌套普通条目：span 吃满整行 */
+.md-sidebar .md-nav__item:not(.md-nav__item--nested) > .md-nav__link > span {
+  max-width: 100%;
+}
+
+/* =====================================================================
+   侧边导航：折叠箭头美化 + 同级标题左对齐（不破坏 ellipsis/tooltip）
+   =====================================================================
+   对齐核心方案（用户指定）：
+     所有同级条目（不管有没有折叠箭头）都在左侧预留固定宽度的箭头占位。
+     - 有折叠箭头 → ▶ 放在占位里
+     - 无折叠箭头 → 占位保留，是同宽度空白
+     结果：同一层级所有条目的 title 左边缘完全对齐。
+
+   技术要点：
+     1. 只追加，不改动已有 ellipsis 规则；源码顺序覆盖旧箭头规则。
+     2. flex 布局：::before(固定占位) + .md-nav__title(ellipsis) + .md-nav__icon(可选靠右)
+     3. 所有选择器限定在 .md-sidebar 内，正文/顶部搜索不受影响。
+   ===================================================================== */
+
+/* ---------- 1) 所有侧边导航 link：统一 flex 布局 ---------- */
+/* 同时覆盖 primary 文件导航 和 secondary 集成目录 */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__link {
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- 2) 所有条目（无论是否 nested）统一预留箭头占位 ---------- */
+/*
+  关键：选择器是 .md-sidebar ... .md-nav__link::before，
+  即所有侧边导航 link 都有 ::before。
+  - nested 条目在规则 4 里填充 "▶"
+  - 非 nested 条目这里 content 为空字符串，变成同宽度空白占位
+  最终所有同级 title 左边缘从同一 x 坐标起 → 完全对齐。
+*/
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__link::before {
+  content: "";                    /* 默认空字符串 = 空白占位 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.75rem;                /* 占位宽度 ≈ 目录字号（0.65rem）略宽 */
+  height: 0.75rem;
+  font-size: 0.45rem;              /* ▼ 字符缩小到文字的 1/3 左右，精致不抢眼 */
+  color: #6b7280;
+  margin-right: 4px;              /* 占位缩小后，间隙略放大透气 */
+  flex-shrink: 0;                 /* flex 容器内不被压缩 */
+  box-sizing: border-box;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+/* ---------- 3) 有折叠的 nested 条目：在占位里填入 ▶ ---------- */
+/* 选择器多一个 .md-nav__item--nested，类数更多，优先级比规则 2 高 */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__item--nested > .md-nav__link::before {
+  content: "▶";
+}
+
+/* ---------- 4) 展开态：rotate(90deg) + 颜色变亮 ---------- */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__item--open > .md-nav__link::before {
+  transform: rotate(90deg);
+  color: #2463eb;
+}
+
+/* ---------- 5) 悬浮态箭头跟着微亮 ---------- */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__item--nested > .md-nav__link:hover::before {
+  color: #2463eb;
+}
+
+/* ---------- 6) title 文字：flex:1 吃中间 + ellipsis ---------- */
+/* 覆盖旧规则里的 " > span { ... ellipsis ... } display:block "，
+   改用更精准的 .md-nav__title 类，避免把右侧跳转图标 .md-nav__icon 也省略。 */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__title {
+  flex: 1 1 auto;
+  min-width: 0;                  /* flex 子项 ellipsis 硬性前提 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: inherit;          /* 继承父级，避免行距突变 */
+}
+
+/* ---------- 7) 跳转图标（.md-nav__icon）：靠右，不挤占 title ---------- */
+/* 同时重置旧 > span 规则可能施加的 ellipsis 给 icon */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__icon {
+  flex: 0 0 auto;
+  margin-left: auto;              /* 推到最右 */
+  margin-right: 0;
+  display: inline-flex;
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  max-width: none;
+}
+
+/* =====================================================================
+   侧边箭头「视觉美化层」
+   仅覆盖箭头的外观属性（字符/颜色/背景/hover/过渡），
+   不触碰任何布局/对齐/缩进/ellipsis 相关属性。
+   ===================================================================== */
+
+/* ---------- 8) 默认态：换用更锐利的字符 + 更深的默认色 ---------- */
+/* ▸ 比 ▶ 在小字号下渲染更清晰、无抗锯齿糊边；
+   同时把默认色从 #6b7280 加深到 #4b5563，更易读但不抢标题 */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__item--nested > .md-nav__link::before {
+  content: "▸";
+  color: #4b5563;
+  /* 新增 transition 属性：加 background-color / border-radius 的过渡，
+     但不动原有的 transform / color 过渡 */
+  transition: transform 0.18s ease, color 0.18s ease,
+              background-color 0.18s ease, border-radius 0.18s ease;
+}
+
+/* ---------- 9) 悬浮态：浅蓝圆底 + 主题蓝箭头 + 微微放大 ---------- */
+/* 只覆盖 color / background-color / border-radius / transform，
+   占位尺寸、margin 等全部不动 → 不影响对齐 */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__item--nested > .md-nav__link:hover::before {
+  color: #2463eb;
+  background-color: #eaf2ff;          /* 极浅蓝底，增加可点击提示感 */
+  border-radius: 3px;                 /* 小圆角，视觉柔和 */
+  transform: scale(1.1);              /* 微微放大，有"被点到"的反馈 */
+}
+
+/* ---------- 10) 展开态：旋转 90° + 主题蓝 + 一点点缩放显弹性 ---------- */
+.md-sidebar :is(.md-nav--primary, .md-nav--secondary) .md-nav__item--open > .md-nav__link::before {
+  color: #2463eb;
+  transform: rotate(90deg) scale(1.08);   /* 旋转 90° + 略放大 */
+}
+
+/* =====================================================================
+   取消「目录」标题前的 ‹/› 图标（Material 在 TOC 标题 label 里内置的 .md-nav__icon）
+   条目前的 ▸ 箭头保留（由上面规则 3/8 生成）
+   ===================================================================== */
+.md-sidebar .md-nav--secondary > .md-nav__title[for="__toc"] .md-nav__icon,
+.md-sidebar .md-nav--secondary > label[for="__toc"] .md-nav__icon {
+  display: none !important;
+}
+/* 兜底：万一标题元素自身也带 ::before 占位/箭头，一并清掉 */
+.md-sidebar .md-nav--secondary > .md-nav__title[for="__toc"]::before,
+.md-sidebar .md-nav--secondary > label[for="__toc"]::before {
+  content: none !important;
 }
